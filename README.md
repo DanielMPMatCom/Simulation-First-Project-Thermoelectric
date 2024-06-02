@@ -46,4 +46,4 @@ $\operatorname {E} [X] = \frac {1}{\lambda }\Gamma \left(1+{\frac {1}{\alpha }}\
 
 $\operatorname {Var} (X)={\frac {1}{\lambda ^{2}}}\left[\Gamma \left(1+{\frac {2}{\alpha }}\right)-\Gamma ^{2}\left(1+{\frac {1}{\alpha }}\right)\right]$
 
-
+${\displaystyle \Gamma (z)=\int _{0}^{\infty }t^{z-1}e^{-t}\,dt}$
