@@ -1,7 +1,6 @@
 import random as rnd
 
-
-class Log_Normal:
+class LogNormal:
     def __init__(self, mu, sigma):
         """
         LogNormal Random Variable
