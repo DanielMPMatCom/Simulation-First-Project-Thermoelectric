@@ -1,5 +1,6 @@
 import random as rnd
 
+
 class LogNormal:
     def __init__(self, mu, sigma):
         """
@@ -17,7 +18,7 @@ class LogNormal:
         """
         return rnd.lognormvariate(self.mu, self.sigma)
 
-    def generate(mu, sigma):
+    def generate_with_params(mu, sigma):
         """
         Used to generate a random number from the log normal distribution
         sigma must be greater than 0

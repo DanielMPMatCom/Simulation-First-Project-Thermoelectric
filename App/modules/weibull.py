@@ -26,7 +26,7 @@ class Weibull:
         """
         return rnd.weibullvariate(self.shape, self.scale)
 
-    def generate(alpha, lambd):
+    def generate_with_params(alpha, lambd):
         """
         Used to generate a random number from the Weibull distribution
         """

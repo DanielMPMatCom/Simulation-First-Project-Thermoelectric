@@ -1,9 +1,9 @@
 import sys
 from enum import Enum
 from event import Event, Event_type
-import matplotlib as plt
-from generator.weibull import Weibull
-from generator.lognormal import LogNormal
+import matplotlib.pyplot as plt
+from weibull import Weibull
+from lognormal import LogNormal
 
 MAX_DAY = 1e9 + 5
 
@@ -14,11 +14,16 @@ class ThermoElectric_State(Enum):
 
 
 class ThermoElectric:
-    def __init__(self, weibull: Weibull, logNormal: LogNormal):
+    def __init__(self, offer, weibull: Weibull, logNormal: LogNormal):
         self.__future_events: list[Event] = []
         self.history: list[Event] = []
+        self.offer = offer
         self.weibull = weibull
         self.logNormal = logNormal
+
+    def print_future_events(self):
+        for e in self.__future_events:
+            print(e)
 
     def is_working(self) -> bool:
         if len(self.__future_events) <= 0:
@@ -66,6 +71,7 @@ class ThermoElectric:
             self.__future_events.append(event)
             flip_flop = not flip_flop
             event = self.__generate_next_event(flip_flop)
+            event.event_day += self.__future_events[-1].event_day
 
         return
 
@@ -86,11 +92,19 @@ class ThermoElectric:
         print("LogNormal Distribution:")
         print(f"Mean: {self.logNormal.get_mu()}")
         print(f"Des: {self.logNormal.get_sigma()}")
+        return
 
-    def plot_thermoelectric(self, from_day=0, to_day=None):
+    def plot(self, from_day=0, to_day=None):  # WARNING IN PROCESS
         images = []
-        all_events: list[Event] = self.history.extend(self.__future_events)
+
+        all_events: list[Event] = (
+            self.history.extend(self.__future_events)
+            if len(self.history) > 0
+            else self.__future_events
+        )
+
         to_day = all_events[-1].event_day if to_day is None else to_day
+
         if from_day > to_day:
             raise ValueError("from day must be lower equal then to_day")
 
@@ -102,8 +116,12 @@ class ThermoElectric:
             if event.event_day > to_day:
                 break
             value = 1 if event.event_type == Event_type.BREAK else 0
-            images.extend([value] * (event.event_day - last_day))
+            images.extend([value] * int(event.event_day - last_day))
             last_day = event.event_day
 
+        print(len(images))
+        print(images)
         plt.plot(images)
+        plt.ylabel = "State"
+        plt.xlabel = "Days"
         plt.show()
