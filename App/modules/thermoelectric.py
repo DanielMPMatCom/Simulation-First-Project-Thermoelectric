@@ -1,9 +1,9 @@
 import sys
 from enum import Enum
-from event import Event, Event_type
+from App.modules.event import Event, Event_type
 import matplotlib.pyplot as plt
-from weibull import Weibull
-from lognormal import LogNormal
+from App.modules.weibull import Weibull
+from App.modules.lognormal import LogNormal
 
 MAX_DAY = 1e9 + 5
 
@@ -79,7 +79,7 @@ class ThermoElectric:
         self.planificate_events(days_to_replanificate)
         return
 
-    def get_history(self) -> list[Event]:
+    def get_history(self) -> "list[Event]":
         return self.history
 
     def get_distributions_info(self):

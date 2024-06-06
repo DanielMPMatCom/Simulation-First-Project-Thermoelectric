@@ -2,7 +2,7 @@ import random as rnd
 
 
 class Operator:
-    def __init__(self, options: list[function]) -> None:  # funtions/0
+    def __init__(self, options: "list[function]") -> None:  # funtions/0
         self.options = options
 
     def decision(self, thermoElectrics, circuits):

@@ -9,7 +9,7 @@ class Circuit_State(Enum):
 
 
 class Circuit:
-    def __init__(self, demand: float, associated_thermoelectric: list[ThermoElectric]):
+    def __init__(self, demand: float, associated_thermoelectric: "list[ThermoElectric]"):
         self.demand = demand
         self.associated_thermoelectric = associated_thermoelectric
         self.future_events = []
@@ -53,7 +53,7 @@ class Circuit:
     def repair_and_replanificate(self, days_to_replanificate) -> None:
         pass
 
-    def get_history(self) -> list[Event]:
+    def get_history(self) -> "list[Event]":
         pass
 
     def get_distributions_info(self):
