@@ -8,7 +8,7 @@ class Weibull:
     alpha is the scale parameter and beta is the shape parameter.
     """
 
-    def __init__(self, alpha:float, lambd:float):
+    def __init__(self, alpha: float, lambd: float):
         """
         alpha: scale parameter
         lambd: shape parameter

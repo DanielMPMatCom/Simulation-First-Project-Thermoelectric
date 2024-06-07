@@ -1,9 +1,9 @@
 import sys
 from enum import Enum
-from App.modules.event import Event, Event_type
+from event import Event, Event_type
 import matplotlib.pyplot as plt
-from App.modules.weibull import Weibull
-from App.modules.lognormal import LogNormal
+from weibull import Weibull
+from lognormal import LogNormal
 
 MAX_DAY = 1e9 + 5
 
@@ -84,16 +84,21 @@ class ThermoElectric:
         return self.history
 
     def get_distributions_info(self):
-        print("Weibull Distribution:")
-        print(f"Scale: {self.weibull.get_scale()}")
-        print(f"Shape: {self.weibull.get_shape()}")
-
-        print(f" - - - - - - - - - - - -")
-
-        print("LogNormal Distribution:")
-        print(f"Mean: {self.logNormal.get_mu()}")
-        print(f"Des: {self.logNormal.get_sigma()}")
-        return
+        output = (
+            "Weibull Distribution:"
+            + "\n"
+            + f"Scale: {self.weibull.get_scale()}"
+            + "\n"
+            + f"Shape: {self.weibull.get_shape()}"
+            + "\n"
+            + "\n"
+            + "LogNormal Distribution:"
+            + "\n"
+            + f"Mean: {self.logNormal.get_mu()}"
+            + f"Des: {self.logNormal.get_sigma()}"
+        )
+        print(output)
+        return output
 
     def plot(self, from_day=0, to_day=None):  # WARNING IN PROCESS
         images = []
@@ -126,3 +131,6 @@ class ThermoElectric:
         plt.ylabel("State")
         plt.xlabel("Day")
         plt.show()
+        fig, ax = plt.subplots()
+        ax.plot(images)
+        return fig, ax
