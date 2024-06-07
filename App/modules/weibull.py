@@ -10,21 +10,21 @@ class Weibull:
 
     def __init__(self, alpha, lambd):
         """
-        alpha: shape parameter
-        lambd: scale parameter
+        alpha: scale parameter
+        lambd: shape parameter
         alpha > 0, lambd > 0
         """
         if alpha <= 0 or lambd <= 0:
             raise ValueError("alpha and lambd must be greater than 0")
 
-        self.shape = alpha
-        self.scale = lambd
+        self.scale = alpha
+        self.shape = lambd
 
     def generate(self):
         """
         Used to generate a random number from the Weibull distribution for class instances
         """
-        return rnd.weibullvariate(self.shape, self.scale)
+        return rnd.weibullvariate(self.scale, self.shape)
 
     def generate_with_params(alpha, lambd):
         """
