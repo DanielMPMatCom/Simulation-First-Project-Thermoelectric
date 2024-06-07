@@ -122,6 +122,6 @@ class ThermoElectric:
         print(len(images))
         print(images)
         plt.plot(images)
-        plt.ylabel = "State"
-        plt.xlabel = "Days"
+        plt.ylabel("State")
+        plt.xlabel("Day")
         plt.show()
