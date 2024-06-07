@@ -17,5 +17,15 @@ import random as rnd
 #         choice = rnd.randint(0, len(self.options) - 1)
 #         return self.options[choice]()\
 
+class Agent:
 
-        
+    def __init__(self, thermoelectric_func, circuit_func):
+        self.thermoelectric_func = thermoelectric_func
+        self.circuit_func = circuit_func
+
+    def Manage_Thermoelectrics():
+        pass
+
+    def Manage_Circuits():
+        pass     
+
