@@ -93,13 +93,15 @@ class ThermoElectric:
         for event in reversed(self.history):
             if event.event_type == Event_type.BREAK:
                 return event.event_day
+        return -1
 
     def get_last_repair_day(self) -> float:
         if len(self.history) <= 0:
-            return -1
+            return 0
         for event in reversed(self.history):
             if event.event_type == Event_type.REPAIR:
                 return event.event_day
+        return 0
 
     def get_distributions_info(self):
         output = (
