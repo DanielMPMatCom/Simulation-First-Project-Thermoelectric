@@ -42,7 +42,7 @@ class ThermoElectric:
             else ThermoElectric_State.BREAK
         )
 
-    def get_next_future_event_day(self) -> int:
+    def get_next_future_event_day(self) -> float:
         if len(self.__future_events) <= 0:
             return MAX_DAY
         return self.__future_events[0].event_day

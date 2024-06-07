@@ -15,5 +15,5 @@ class Random_Operator(Operator):
 
     def decision(self, thermoElectrics, circuits):
         choice = rnd.randint(0, len(self.options) - 1)
-        self.options[choice]()
-        return
+        return self.options[choice]()
+        
