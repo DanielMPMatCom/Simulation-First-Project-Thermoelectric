@@ -63,7 +63,7 @@ class ThermoElectric:
     def planificate_events(
         self, days: int, init_day=0, initial_state_flip_flop: bool = False
     ) -> None:
-
+        self.__future_events = []
         flip_flop = initial_state_flip_flop
         event = self.__generate_next_event(flip_flop)
         event.event_day = init_day
