@@ -61,11 +61,12 @@ class ThermoElectric:
         return Event(Event_type.BREAK, self.weibull.generate())
 
     def planificate_events(
-        self, days: int, initial_state_flip_flop: bool = False
+        self, days: int, init_day=0, initial_state_flip_flop: bool = False
     ) -> None:
 
         flip_flop = initial_state_flip_flop
         event = self.__generate_next_event(flip_flop)
+        event.event_day = init_day
 
         while event.event_day < days:
             self.__future_events.append(event)
@@ -75,8 +76,8 @@ class ThermoElectric:
 
         return
 
-    def repair_and_replanificate(self, days_to_replanificate) -> None:
-        self.planificate_events(days_to_replanificate)
+    def repair_and_replanificate(self, init_day, days_to_replanificate) -> None:
+        self.planificate_events(days_to_replanificate, init_day)
         return
 
     def get_history(self) -> "list[Event]":
