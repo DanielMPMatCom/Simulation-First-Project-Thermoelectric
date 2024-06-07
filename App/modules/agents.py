@@ -20,12 +20,9 @@ import random as rnd
 class Agent:
 
     def __init__(self, thermoelectric_func, circuit_func):
-        self.thermoelectric_func = thermoelectric_func
-        self.circuit_func = circuit_func
+        self.Manage_Thermoelectrics = thermoelectric_func
+        self.Manage_Circuits = circuit_func
 
-    def Manage_Thermoelectrics():
-        pass
 
-    def Manage_Circuits():
-        pass     
+          
 
