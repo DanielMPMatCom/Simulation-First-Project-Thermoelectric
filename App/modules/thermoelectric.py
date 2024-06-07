@@ -63,7 +63,6 @@ class ThermoElectric:
     def planificate_events(
         self, days: int, init_day=0, initial_state_flip_flop: bool = False
     ) -> None:
-        self.__future_events = []
         flip_flop = initial_state_flip_flop
         event = self.__generate_next_event(flip_flop)
         event.event_day = init_day
@@ -76,8 +75,13 @@ class ThermoElectric:
 
         return
 
-    def repair_and_replanificate(self, init_day, days_to_replanificate) -> None:
-        self.planificate_events(days_to_replanificate, init_day, True)
+    def repair_and_replanificate(
+        self, init_day, days_to_replanificate, logNormalRepair: LogNormal
+    ) -> None:
+        self.__future_events = []
+        event = Event(Event_type.REPAIR, logNormalRepair.generate() + init_day)
+        self.__future_events.append(event)
+        self.planificate_events(days_to_replanificate, event.event_day)
         return
 
     def get_history(self) -> "list[Event]":
