@@ -87,6 +87,20 @@ class ThermoElectric:
     def get_history(self) -> "list[Event]":
         return self.history
 
+    def get_last_break_day(self) -> float:
+        if len(self.history) <= 0:
+            return -1
+        for event in reversed(self.history):
+            if event.event_type == Event_type.BREAK:
+                return event.event_day
+
+    def get_last_repair_day(self) -> float:
+        if len(self.history) <= 0:
+            return -1
+        for event in reversed(self.history):
+            if event.event_type == Event_type.REPAIR:
+                return event.event_day
+
     def get_distributions_info(self):
         output = (
             "Weibull Distribution:"
