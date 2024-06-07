@@ -77,7 +77,7 @@ class ThermoElectric:
         return
 
     def repair_and_replanificate(self, init_day, days_to_replanificate) -> None:
-        self.planificate_events(days_to_replanificate, init_day)
+        self.planificate_events(days_to_replanificate, init_day, True)
         return
 
     def get_history(self) -> "list[Event]":
