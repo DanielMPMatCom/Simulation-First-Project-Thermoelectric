@@ -1,34 +1,17 @@
-# HACER UNO ASI PARA NUESTRO PROYECTO
+# Description: This file contains the code to generate the Weibull and LogNormal distribution plots. 
+# Need fix: The code is not working as expected. The Weibull and LogNormal plots are not being displayed.
 
 import streamlit as st
 import numpy as np
-import pandas as pd
 import plotly.graph_objects as go
 from scipy import stats
+import matplotlib.pyplot as plt
 
-SHAPE_MAX_VALUE_ALPHA = 1000
-SCALA_MAX_VALUE_LAMBDA = 1000
+SHAPE_MAX_VALUE_LAMBDA = 100
+SCALA_MAX_VALUE_ALPHA = 100
 
-
-# Function to perform bootstrapping
-def bootstrap(data, num_samples, statistic, alpha):
-    samples = np.random.choice(data, (num_samples, len(data)), replace=True)
-    stats = np.array([statistic(sample) for sample in samples])
-    lower = np.percentile(stats, 100 * alpha / 2)
-    upper = np.percentile(stats, 100 * (1 - alpha / 2))
-    return np.mean(stats), lower, upper, stats
-
-
-# Function to perform repeated experiments
-def repeated_experiments(data, num_samples, statistic):
-    stats = np.array(
-        [
-            statistic(np.random.choice(data, len(data), replace=True))
-            for _ in range(num_samples)
-        ]
-    )
-    return np.mean(stats), np.std(stats), stats
-
+MEAN_MAX_VALUE_MU = 100
+DEVIATION_MAX_VALUE_SIGMA = 100
 
 # Available statistics functions
 statistics_functions = {
@@ -56,6 +39,8 @@ statistics_functions.update(scipy_stats_functions)
 
 
 # Streamlit app
+
+
 def main():
     st.title("Bootstrapping vs Repeated Experiments Comparison")
 
@@ -65,122 +50,43 @@ def main():
     # Weibull
     st.sidebar.subheader("Weibull")
 
-    shape_alpha = st.sidebar.slider("Shape", min_value=0, max_value=SHAPE_MAX_VALUE_ALPHA, value=100)
-    scale_lambda = st.sidebar.slider("SCALE", min_value=0, max_value=SHAPE_MAX_VALUE_ALPHA, value=100)
-    
+    shape_alpha = st.sidebar.slider(
+        "Shape(alpha)", min_value=0, max_value=SHAPE_MAX_VALUE_LAMBDA, value=100, format="%d"
+    )
+    shape_alpha = shape_alpha / 10
 
+    scale_lambda = st.sidebar.slider(
+        "Scale(scala)", min_value=0, max_value=SCALA_MAX_VALUE_ALPHA, value=100
+    )
 
-    # Log
+    # LogNormal
     st.sidebar.subheader("LogNormal")
 
-    # File uploader
-
-    data = np.random.randn(data_size)
-
-    num_samples = st.sidebar.slider(
-        "Number of Samples/Bootstrap Samples",
-        min_value=100,
-        max_value=10000,
-        value=1000,
-    )
-    alpha = st.sidebar.slider(
-        "Alpha (Significance Level)", min_value=0.01, max_value=0.10, value=0.05
-    )
-    statistic_name = st.sidebar.selectbox(
-        "Statistic", list(statistics_functions.keys())
-    )
-    statistic_func, statistic_desc = statistics_functions[statistic_name]
-
-    # Perform bootstrapping
-    mean_stat_boot, lower_ci_boot, upper_ci_boot, stats_boot = bootstrap(
-        data, num_samples, statistic_func, alpha
+    mean_mu = st.sidebar.slider(
+        "Mean(mu)", min_value=0, max_value=MEAN_MAX_VALUE_MU, value=100
     )
 
-    # Perform repeated experiments
-    mean_stat_repeated, std_stat_repeated, stats_repeated = repeated_experiments(
-        data, num_samples, statistic_func
+    deviation_sigma = st.sidebar.slider(
+        "Deviation", min_value=0, max_value=DEVIATION_MAX_VALUE_SIGMA, value=100
     )
 
     # Display results
-    st.write("### Summary of Original Data")
-    st.write(
-        f"Count: {len(data)}, Mean: {np.mean(data)}, Std: {np.std(data)}, Min: {np.min(data)}, Max: {np.max(data)}"
-    )
+    st.title("Plot Weibull")
 
-    st.write("### Bootstrapping Results")
-    st.write(f"Bootstrap {statistic_name}: {mean_stat_boot}")
-    st.write(
-        f"{100*(1-alpha)}% Confidence Interval: [{lower_ci_boot}, {upper_ci_boot}]"
-    )
-    st.write("#### Description of the Statistic")
-    st.write(statistic_desc)
+    # Plot Weibull Distribution
+    x = np.random.weibull(shape_alpha, scale_lambda)
+    fig, ax = plt.subplots()
+    ax.hist(x, bins=20)
+    st.pyplot(fig)
 
-    # Plot the bootstrap distribution using Plotly
-    fig_boot = go.Figure()
-    fig_boot.add_trace(
-        go.Histogram(
-            x=stats_boot, nbinsx=30, name="Bootstrap Samples", marker_color="blue"
-        )
-    )
-    fig_boot.add_vline(
-        x=mean_stat_boot, line=dict(color="red", dash="dash"), name="Mean"
-    )
-    fig_boot.add_vline(
-        x=lower_ci_boot,
-        line=dict(color="green", dash="dash"),
-        name=f"{100*alpha/2}% CI",
-    )
-    fig_boot.add_vline(
-        x=upper_ci_boot,
-        line=dict(color="green", dash="dash"),
-        name=f"{100*(1-alpha/2)}% CI",
-    )
-    fig_boot.update_layout(
-        title=f"Bootstrap Distribution of {statistic_name}",
-        xaxis_title=statistic_name,
-        yaxis_title="Frequency",
-        legend=dict(x=0.7, y=0.95),
-        showlegend=True,
-    )
+    # Display results
+    st.title("Plot LogNormal")
 
-    st.plotly_chart(fig_boot)
-
-    st.write("### Repeated Experiments Results")
-    st.write(f"Mean of Repeated Experiments: {mean_stat_repeated}")
-    st.write(f"Standard Deviation of Repeated Experiments: {std_stat_repeated}")
-
-    # Plot the distribution of repeated experiments using Plotly
-    fig_repeated = go.Figure()
-    fig_repeated.add_trace(
-        go.Histogram(
-            x=stats_repeated,
-            nbinsx=30,
-            name="Repeated Experiment Samples",
-            marker_color="orange",
-        )
-    )
-    fig_repeated.add_vline(
-        x=mean_stat_repeated, line=dict(color="red", dash="dash"), name="Mean"
-    )
-    fig_repeated.add_vline(
-        x=mean_stat_repeated - std_stat_repeated,
-        line=dict(color="green", dash="dash"),
-        name="Mean ± Std",
-    )
-    fig_repeated.add_vline(
-        x=mean_stat_repeated + std_stat_repeated,
-        line=dict(color="green", dash="dash"),
-        name="Mean ± Std",
-    )
-    fig_repeated.update_layout(
-        title=f"Distribution of Repeated Experiments for {statistic_name}",
-        xaxis_title=statistic_name,
-        yaxis_title="Frequency",
-        legend=dict(x=0.7, y=0.95),
-        showlegend=True,
-    )
-
-    st.plotly_chart(fig_repeated)
+    # Plot Weibull Distribution
+    x = np.random.lognormal(mean_mu, deviation_sigma, 365)
+    fig, ax = plt.subplots()
+    ax.hist(x, bins=20)
+    st.pyplot(fig)
 
 
 if __name__ == "__main__":
