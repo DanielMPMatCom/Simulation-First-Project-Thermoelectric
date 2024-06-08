@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from App.modules.event import Event, Event_type
 from App.modules.weibull import Weibull
 from App.modules.lognormal import LogNormal
+import plotly.graph_objects as go
 
 MAX_DAY = 1e9 + 5
 
@@ -120,7 +121,7 @@ class ThermoElectric:
         print(output)
         return output
 
-    def plot(self, from_day=0, to_day=None):  # WARNING IN PROCESS
+    def plot(self, from_day=0, to_day=None, show=True):  # WARNING IN PROCESS
         images = []
 
         all_events: list[Event] = (
@@ -148,10 +149,24 @@ class ThermoElectric:
         print(len(images))
         print(images)
 
-        fig, ax = plt.subplots()
-        ax.set_title("ThermoElectric")
-        ax.set_xlabel("Days")
-        ax.set_ylabel("State")
-        ax.plot(images)
-        fig.show()
-        return fig, ax
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(from_day, to_day)),
+                y=images,
+                mode="lines",
+                name="ThermoElectric",
+            )
+        )
+
+        fig.update_layout(
+            title="ThermoElectric State",
+            xaxis_title="Day",
+            yaxis_title="State",
+            legend=dict(x=0.7, y=0.95),
+            showlegend=True,
+        )
+
+        if show:
+            fig.show()
+        return fig
