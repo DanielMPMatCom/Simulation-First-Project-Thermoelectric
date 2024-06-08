@@ -147,10 +147,11 @@ class ThermoElectric:
 
         print(len(images))
         print(images)
-        plt.plot(images)
-        plt.ylabel("State")
-        plt.xlabel("Day")
-        plt.show()
+
         fig, ax = plt.subplots()
+        ax.set_title("ThermoElectric")
+        ax.set_xlabel("Days")
+        ax.set_ylabel("State")
         ax.plot(images)
+        fig.show()
         return fig, ax
