@@ -155,7 +155,7 @@ class ThermoElectric:
                 x=list(range(from_day, to_day)),
                 y=images,
                 mode="lines",
-                name="ThermoElectric",
+                name="1 Working \n 0 Break",
             )
         )
 
