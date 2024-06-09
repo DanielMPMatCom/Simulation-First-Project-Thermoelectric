@@ -26,7 +26,6 @@ class Circuit:
 
     def disconnect(self, percentage: float, current_day: int):
         if self.get_remnant(current_day) <= 0:
-            print(f"Apagon pip ip{self.id} en el dia {current_day}")
             return 0
 
         disconnected = 0
