@@ -20,6 +20,7 @@ DEVIATION_MAX_VALUE_SIGMA = 100
 
 DAYS_MAX_VALUE = 800
 THERMOELECTRICS_MAX_VALUE = 100
+CIRCUITS_MAX_VALUE = 1000
 
 OFFER_MAX_VALUE = 1000
 DEMAND_MAX_VALUE = 1000
@@ -54,7 +55,45 @@ def main():
         value=365,
     )
 
+    st.sidebar.subheader("Circuits")
+
+    circuits = st.sidebar.slider(
+        "Circuits Amount",
+        min_value=0,
+        max_value=CIRCUITS_MAX_VALUE,
+        value=115,
+    )
+
+    st.sidebar.subheader("LogNormal")
+
+    circuits_min_mean_mu = st.sidebar.slider(
+        "Min Mean(mu) Circuits",
+        min_value=0.0,
+        max_value=float(MEAN_MAX_VALUE_MU),
+        value=float(2),
+    )
+    circuits_max_mean_mu = st.sidebar.slider(
+        "Max Mean(mu) Circuits",
+        min_value=float(0),
+        max_value=float(MEAN_MAX_VALUE_MU),
+        value=2.5,
+    )
+    circuits_min_deviation_sigma = st.sidebar.slider(
+        "Min Deviation Circuits",
+        min_value=0.0,
+        max_value=float(DEVIATION_MAX_VALUE_SIGMA),
+        value=0.2,
+    )
+    circuits_max_deviation_sigma = st.sidebar.slider(
+        "Max Deviation Circuits",
+        min_value=0.0,
+        max_value=float(DEVIATION_MAX_VALUE_SIGMA),
+        value=0.4,
+    )
+
     # ThermoElectrics
+    st.sidebar.subheader("ThermoElectrics")
+
     thermoelectrics = st.sidebar.slider(
         "ThermoElectrics",
         min_value=0,
@@ -74,20 +113,6 @@ def main():
         min_value=min_offer,
         max_value=OFFER_MAX_VALUE,
         value=OFFER_MAX_VALUE,
-    )
-
-    # demand
-    min_demand = st.sidebar.slider(
-        "Min Demand",
-        min_value=0,
-        max_value=OFFER_MAX_VALUE,
-        value=OFFER_MAX_VALUE,
-    )
-    max_demand = st.sidebar.slider(
-        "Max Demand",
-        min_value=min_offer,
-        max_value=DEMAND_MAX_VALUE,
-        value=DEMAND_MAX_VALUE,
     )
 
     st.sidebar.subheader("Params Configuration")
@@ -148,57 +173,14 @@ def main():
     )
 
     # Display results
+    st.title("First Experiment: Thermoelectric Events")
     st.subheader("Plot at least first three thermoelectric events")
-    my_thermoelectrics: list[thermoelectricClass.ThermoElectric] = (
-        utils.prepare_data_thermoelectrics(
-            days,
-            thermoelectrics,
-            min_scala_alpha,
-            max_scala_alpha,
-            min_shape_lambda,
-            max_shape_lambda,
-            min_mean_mu,
-            max_mean_mu,
-            min_deviation_sigma,
-            max_deviation_sigma,
-            min_offer,
-            max_offer,
-            min_demand,
-            max_demand,
-        )
-    )
-    for i in range(min(thermoelectrics, 3)):
-        st.write(f"***Thermoelectric {i+1}***")
-        st.write(my_thermoelectrics[i].get_distributions_info())
-        st.write("`Plot State 1: Working, 0: Broken`")
-        fig = my_thermoelectrics[i].plot(0, days, show=False)
-        st.plotly_chart(fig)
+    st.write("Thermoelectric events")
+    st.write("1 Means Thermoelectric is working, 0 means is break")
 
-    st.header(f"Thermoelectric Simulation for {days} days")
-    tmp = copy.deepcopy(my_thermoelectrics)
-    working_thermoelectrics = utils.simulate(tmp, days)
-    working_thermoelectrics = [sum(x) for x in working_thermoelectrics]
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(
-            x=list(range(days)),
-            y=working_thermoelectrics,
-            mode="lines",
-            name="Working Thermoelectrics",
-        )
-    )
-    fig.update_layout(
-        title="Working Thermoelectrics",
-        xaxis_title="Days",
-        yaxis_title="Working Thermoelectrics",
-    )
-    st.plotly_chart(fig)
+    # Create thermoelectrics
 
-    # K simulation
-    st.header("Select best thermoelectric maintenance strategy")
-
-    tmp = copy.deepcopy(my_thermoelectrics)
-    average = utils.k_simulation(
+    generated_thermoelectrics = utils.prepare_data_thermoelectrics(
         days,
         thermoelectrics,
         min_scala_alpha,
@@ -211,48 +193,564 @@ def main():
         max_deviation_sigma,
         min_offer,
         max_offer,
-        min_demand,
-        max_demand,
-        number_of_simulations,
     )
 
-    def give_mantainance_heuristic(current_day):
-        for thermoelectric in tmp:
-            if not thermoelectric.is_working():
-                continue
-            last_repair = thermoelectric.get_last_repair_day()
-            if current_day - last_repair >= average:
-                thermoelectric.repair_and_replanificate(
-                    current_day,
-                    days,
-                    lognormalClass.LogNormal(
-                        rnd.uniform(1.5, 2), rnd.uniform(0.2, 0.4)
-                    ),
+    fig = go.Figure()
+    for i in range(3):
+        fig = generated_thermoelectrics[i].plot(0, days, False)
+        st.plotly_chart(fig)
+
+    # Create circuits
+    generated_circuits = utils.create_circuits(
+        circuits,
+        days,
+        circuits_min_mean_mu,
+        circuits_max_mean_mu,
+        circuits_min_deviation_sigma,
+        circuits_max_deviation_sigma,
+    )
+
+    # Running simulation
+
+    simulations_initial_stored_energy = st.sidebar.slider(
+        "Initial Stored Energy",
+        min_value=0,
+        max_value=DAYS_MAX_VALUE,
+        value=0,
+    )
+
+    first_example_th = copy.deepcopy(generated_thermoelectrics)
+    first_example_c = copy.deepcopy(generated_circuits)
+
+    (
+        working_thermoelectrics_without_strategy,
+        deficit_per_day_without_strategy,
+        stored_energy_without_strategy,
+        circuits_without_strategy,
+    ) = utils.simulate(
+        first_example_th,
+        days,
+        circuits=first_example_c,
+        stored_energy=simulations_initial_stored_energy,
+    )
+
+    working_thermoelectrics_without_strategy = [
+        sum(x) for x in working_thermoelectrics_without_strategy
+    ]
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=list(range(0, days)),
+            y=working_thermoelectrics_without_strategy,
+            mode="lines",
+        )
+    )
+
+    fig.update_layout(
+        title="Working thermoelectrics per day",
+        xaxis_title="Days",
+        yaxis_title="Working thermoelectrics",
+    )
+
+    st.plotly_chart(fig)
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=list(range(0, days)),
+            y=stored_energy_without_strategy,
+            mode="lines",
+            name="Stored Energy",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=list(range(0, days)),
+            y=deficit_per_day_without_strategy,
+            mode="lines",
+            name="Deficit",
+        )
+    )
+
+    fig.update_layout(
+        title="Energy per day",
+        xaxis_title="Days",
+        yaxis_title="Energy",
+    )
+
+    st.plotly_chart(fig)
+
+    # 2nd Experiment
+    st.write("Second Experiment: Maintenance Strategy")
+    st.write("Generating some strategy to manage the thermoelectrics")
+    second_example_th = copy.deepcopy(generated_thermoelectrics)
+    second_example_c = copy.deepcopy(generated_circuits)
+
+    st.write("Find the mean of active days of thermoelectrics in K simulations")
+    k = st.slider("K-simulations", min_value=0, max_value=100, value=10)
+
+    average, _, _, _, _, _, _ = utils.k_simulation(
+        days,
+        thermoelectrics,
+        k,
+        None,
+        circuits,
+        min_scala_alpha,
+        max_scala_alpha,
+        min_shape_lambda,
+        max_shape_lambda,
+        min_mean_mu,
+        max_mean_mu,
+        min_deviation_sigma,
+        max_deviation_sigma,
+        min_offer,
+        max_offer,
+        circuits_min_mean_mu,
+        circuits_max_mean_mu,
+        circuits_min_deviation_sigma,
+        circuits_max_deviation_sigma,
+    )
+
+    def decorator_context_give_maintenance():
+
+        def give_maintenance_heuristic(
+            current_day,
+            stored_energy,
+            circuits,
+            thermoelectrics: list[thermoelectricClass.ThermoElectric],
+            rotation,
+        ):
+            if stored_energy <= 1e-8:
+                return
+
+            if (
+                sum(
+                    [
+                        thermoelectric.is_on_maintenance()
+                        for thermoelectric in thermoelectrics
+                    ]
                 )
+                >= 1
+            ):
+                return
 
-    def empty_func(current_day):
-        pass
+            for thermoelectric in thermoelectrics:
 
-    working_thermoelectrics = utils.simulate(
-        tmp, days, agentsClass.Agent(give_mantainance_heuristic, empty_func)
+                if not thermoelectric.is_working():
+                    continue
+                last_repair = thermoelectric.get_last_repair_day()
+                if current_day - last_repair >= average:
+                    thermoelectric.repair_and_replanificate(
+                        current_day,
+                        days,
+                        lognormalClass.LogNormal(
+                            rnd.uniform(min_mean_mu, max_mean_mu),
+                            rnd.uniform(min_deviation_sigma, max_deviation_sigma),
+                        ),
+                    )
+                    maintainance_thermoelectric = thermoelectric
+                    return
+
+        return give_maintenance_heuristic
+
+    # Running simulation with agent and Maintenance heuristic
+    (
+        working_thermoelectrics_maintenance_heuristic,
+        deficit_per_day_maintenance_heuristic,
+        stored_per_day_maintenance_heuristic,
+        circuits_maintenance_heuristic,
+    ) = utils.simulate(
+        second_example_th,
+        days,
+        agentsClass.Agent(
+            decorator_context_give_maintenance(),
+            utils.empty_func,
+        ),
+        second_example_c,
+        simulations_initial_stored_energy,
     )
 
-    working_thermoelectrics = [sum(x) for x in working_thermoelectrics]
+    working_thermoelectrics_maintenance_heuristic = [
+        sum(x) for x in working_thermoelectrics_maintenance_heuristic
+    ]
+
+    fig_maintenance_heuristic = go.Figure()
+    fig_maintenance_heuristic.add_trace(
+        go.Scatter(
+            x=list(range(0, days)),
+            y=working_thermoelectrics_maintenance_heuristic,
+            mode="lines",
+        )
+    )
+    fig_maintenance_heuristic.update_layout(
+        title="Maintenance heuristic",
+        xaxis_title="Days",
+        yaxis_title="Working thermoelectrics",
+    )
+
+    st.plotly_chart(fig_maintenance_heuristic)
+
+    fig_energy_deficit_and_stored_maintenance_heuristic = go.Figure()
+
+    fig_energy_deficit_and_stored_maintenance_heuristic.add_trace(
+        go.Scatter(
+            x=list(range(0, days)),
+            y=stored_per_day_maintenance_heuristic,
+            name="Stored Energy",
+        )
+    )
+
+    fig_energy_deficit_and_stored_maintenance_heuristic.add_trace(
+        go.Scatter(
+            x=list(range(0, days)),
+            y=deficit_per_day_maintenance_heuristic,
+            name="Deficit Energy",
+        )
+    )
+
+    fig_energy_deficit_and_stored_maintenance_heuristic.update_layout(
+        title="Energy per day",
+        xaxis_title="Days",
+        yaxis_title="Energy",
+        legend=dict(x=0.7, y=0.95),
+        showlegend=True,
+    )
+    st.plotly_chart(fig_energy_deficit_and_stored_maintenance_heuristic)
+
+    # 3rd Experiment
+    st.title("Third Experiment : Circuit Management")
+    st.write("Strategy to manage the circuits")
+    st.write(
+        "Using round robin to shut down a percentage of a circuit to cover the deficit"
+    )
+
+    third_example_th = copy.deepcopy(generated_thermoelectrics)
+    third_example_c = copy.deepcopy(generated_circuits)
+
+    # Running simulation with both strategies
+    (
+        working_thermoelectrics_both_heuristic,
+        deficit_per_day_both_heuristic,
+        stored_energy_per_day_both_heuristic,
+        circuits_result,
+    ) = utils.simulate(
+        third_example_th,
+        days,
+        agentsClass.Agent(
+            decorator_context_give_maintenance(),
+            utils.disconnect_circuit_heuristic,
+        ),
+        third_example_c,
+        simulations_initial_stored_energy,
+    )
+
+    total_deficit_by_circuit = [x.total_deficit for x in circuits_result]
+    demand_by_circuit = [sum(x.demand) / len(x.demand) for x in circuits_result]
+    x = list(range(len(total_deficit_by_circuit)))
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(
+            x=x,
+            y=total_deficit_by_circuit,
+        )
+    )
+
+    fig.update_layout(
+        title="Total Deficit per Circuit",
+        xaxis_title="Circuit ID",
+        yaxis_title="Deficit",
+    )
+
+    st.plotly_chart(fig)
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Bar(x=x, y=demand_by_circuit))
+    fig.update_layout(
+        title="Total Demand per Circuit",
+        xaxis_title="Circuit ID",
+        yaxis_title="Demand",
+    )
+
+    st.plotly_chart(fig)
+
+    # Plotting some circuits' deficits
+    st.write("Plotting some circuits' deficits")
+    for c in circuits_result[:10]:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=list(range(days)), y=c.deficit_history))
+        fig.update_layout(
+            title=f"Deficit per day in Circuit {c.id}",
+            xaxis_title="Days",
+            yaxis_title="Deficit",
+        )
+        st.plotly_chart(fig)
+
+    # 4th Experiment
+    st.title("Fourth Experiment: Maintenance VS Non Maintenance")
+    st.write("Comparing the two strategies")
+
+    list_of_days = list(range(0, days))
+    fig_comparison_working_thermoelectrics = go.Figure()
+    fig_comparison_working_thermoelectrics.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=working_thermoelectrics_maintenance_heuristic,
+            mode="lines",
+            name="Maintenance Strategy",
+        )
+    )
+
+    fig_comparison_working_thermoelectrics.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=working_thermoelectrics_without_strategy,
+            mode="lines",
+            name="Without Maintenance Strategy",
+        )
+    )
+
+    fig_comparison_energy = go.Figure()
+
+    fig_comparison_energy.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=stored_per_day_maintenance_heuristic,
+            mode="lines",
+            name="Maintenance Strategy",
+        )
+    )
+
+    fig_comparison_energy.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=stored_energy_without_strategy,
+            mode="lines",
+            name="Without Maintenance Strategy",
+        )
+    )
+
+    fig_comparison_deficit = go.Figure()
+
+    fig_comparison_deficit.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=deficit_per_day_maintenance_heuristic,
+            mode="lines",
+            name="Maintenance Strategy",
+        )
+    )
+
+    fig_comparison_deficit.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=deficit_per_day_without_strategy,
+            mode="lines",
+            name="Without Maintenance Strategy",
+        )
+    )
+
+    fig_comparison_working_thermoelectrics.update_layout(
+        title="Working Thermoelectric per day",
+        xaxis_title="Days",
+        yaxis_title="Thermoeelctrics",
+        legend=dict(x=0.7, y=0.95),
+        showlegend=True,
+    )
+
+    fig_comparison_energy.update_layout(
+        title="Stored Energy per day",
+        xaxis_title="Days",
+        yaxis_title="Energy",
+        legend=dict(x=0.7, y=0.95),
+        showlegend=True,
+    )
+
+    fig_comparison_deficit.update_layout(
+        title="Deficit per day",
+        xaxis_title="Days",
+        yaxis_title="Energy",
+        legend=dict(x=0.7, y=0.95),
+        showlegend=True,
+    )
+
+    st.plotly_chart(fig_comparison_working_thermoelectrics)
+    st.plotly_chart(fig_comparison_energy)
+    st.plotly_chart(fig_comparison_deficit)
+
+    #########################################################
+
+    st.subheader("Repeat the experiments K-times")
+
+    K_SIMULATIONS = st.slider(
+        label="K-Simulations", min_value=1, max_value=1000, value=300
+    )
+
+    # non maintenance
+    (
+        _,
+        non_maintenance_average_of_working_per_day,
+        non_maintenance_average_deficit_per_day,
+        non_maintenance_average_stored_energy_per_day,
+        non_maintenance_average_of_working,
+        non_maintenance_average_deficit,
+        non_maintenance_average_stored_energy,
+    ) = utils.k_simulation(
+        days,
+        thermoelectrics,
+        K_SIMULATIONS,
+        None,
+        circuits,
+        min_scala_alpha,
+        max_scala_alpha,
+        min_shape_lambda,
+        max_shape_lambda,
+        min_mean_mu,
+        max_mean_mu,
+        min_deviation_sigma,
+        max_deviation_sigma,
+        min_offer,
+        max_offer,
+        circuits_min_mean_mu,
+        circuits_max_mean_mu,
+        circuits_min_deviation_sigma,
+        circuits_max_deviation_sigma,
+    )
+
+    # maintenance
+    (
+        _,
+        maintenance_average_of_working_per_day,
+        maintenance_average_deficit_per_day,
+        maintenance_average_stored_energy_per_day,
+        maintenance_average_of_working,
+        maintenance_average_deficit,
+        maintenance_average_stored_energy,
+    ) = utils.k_simulation(
+        days,
+        thermoelectrics,
+        K_SIMULATIONS,
+        agentsClass.Agent(
+            decorator_context_give_maintenance(),
+            utils.disconnect_circuit_heuristic,
+        ),
+        circuits,
+        min_scala_alpha,
+        max_scala_alpha,
+        min_shape_lambda,
+        max_shape_lambda,
+        min_mean_mu,
+        max_mean_mu,
+        min_deviation_sigma,
+        max_deviation_sigma,
+        min_offer,
+        max_offer,
+        circuits_min_mean_mu,
+        circuits_max_mean_mu,
+        circuits_min_deviation_sigma,
+        circuits_max_deviation_sigma,
+    )
+
+    ## print stadistics in md format
+    st.write("## Results")
+    st.write("### Non Maintenance")
+    st.write(
+        f"""Average in {K_SIMULATIONS} simulations:
+    Working Thermoelectrics: {non_maintenance_average_of_working}
+    Deficit: {non_maintenance_average_deficit}
+    Stored Energy: {non_maintenance_average_stored_energy}
+    """
+    )
+
+    st.write("### Maintenance")
+    st.write(
+        f"""Average in {K_SIMULATIONS} simulations:
+    Working Thermoelectrics: {maintenance_average_of_working}
+    Deficit: {maintenance_average_deficit}
+    Stored Energy: {maintenance_average_stored_energy}
+    """
+    )
+
+    list_of_days = list(range(days))
 
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
-            x=list(range(days)),
-            y=working_thermoelectrics,
-            mode="lines",
-            name="Working Thermoelectrics",
+            x=list_of_days, y=maintenance_average_of_working_per_day, name="Maintenance"
         )
     )
+
+    fig.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=non_maintenance_average_of_working_per_day,
+            name="Non Maintenance",
+        )
+    )
+
     fig.update_layout(
-        title="Working Thermoelectrics",
+        title="Maintenance vs Non Maintenance: Day Average Working Thermoelectrics",
         xaxis_title="Days",
         yaxis_title="Working Thermoelectrics",
+        legend=dict(x=0.7, y=0.95),
+        showlegend=True,
     )
+
+    st.plotly_chart(fig)
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=list_of_days, y=maintenance_average_deficit_per_day, name="Maintenance"
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=non_maintenance_average_deficit_per_day,
+            name="Non Maintenance",
+        )
+    )
+
+    fig.update_layout(
+        title="Maintenance vs Non Maintenance: Day Average Deficit",
+        xaxis_title="Days",
+        yaxis_title="Energy",
+        legend=dict(x=0.7, y=0.95),
+        showlegend=True,
+    )
+
+    st.plotly_chart(fig)
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=maintenance_average_stored_energy_per_day,
+            name="Maintenance",
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=list_of_days,
+            y=non_maintenance_average_stored_energy_per_day,
+            name="Non Maintenance",
+        )
+    )
+
+    fig.update_layout(
+        title="Maintenance vs Non Maintenance: Day Stored Energy",
+        xaxis_title="Days",
+        yaxis_title="Energy",
+        legend=dict(x=0.7, y=0.95),
+        showlegend=True,
+    )
+
     st.plotly_chart(fig)
 
 
