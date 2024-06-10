@@ -12,6 +12,7 @@ MAX_DAY = 1e9 + 5
 class ThermoElectric_State(Enum):
     WORKING = "working"
     BREAK = "break"
+    MAINTENANCE = "MAINTENANCE"
 
 
 class ThermoElectric:
@@ -35,6 +36,11 @@ class ThermoElectric:
 
     def is_break(self) -> bool:
         return not self.is_working()
+    
+    def is_on_maintenance(self) -> bool:
+        if len(self.__future_events) <= 0:
+            return False
+        return self.__future_events[0].event_type == Event_type.MAINTENANCE
 
     def get_state(self) -> ThermoElectric_State:
         return (
@@ -80,7 +86,7 @@ class ThermoElectric:
         self, init_day, days_to_replanificate, logNormalRepair: LogNormal
     ) -> None:
         self.__future_events = []
-        event = Event(Event_type.REPAIR, logNormalRepair.generate() + init_day)
+        event = Event(Event_type.MAINTENANCE, logNormalRepair.generate() + init_day)
         self.__future_events.append(event)
         self.planificate_events(days_to_replanificate, event.event_day)
         return

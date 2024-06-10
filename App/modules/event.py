@@ -4,6 +4,7 @@ from enum import Enum
 class Event_type(Enum):
     BREAK = "break"
     REPAIR = "repair"
+    MAINTENANCE = "maintenance"
 
 
 class Event:
