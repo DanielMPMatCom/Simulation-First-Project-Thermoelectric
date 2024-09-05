@@ -66,8 +66,8 @@ def prepare_data_thermoelectrics(
     max_deviation_sigma,
     min_offer,
     max_offer,
-) -> list[thermoelectricClass.ThermoElectric]:
-    simulations_thermoelectrics: list[thermoelectricClass.ThermoElectric] = []
+) -> "list[thermoelectricClass.ThermoElectric]":
+    simulations_thermoelectrics: "list[thermoelectricClass.ThermoElectric]" = []
     for _ in range(thermoelectrics):
         t = create_theroelectric(
             days,
@@ -87,7 +87,7 @@ def prepare_data_thermoelectrics(
 
 
 def get_next_general_event(
-    thermoelectrics_list: list[thermoelectricClass.ThermoElectric], days, current_day
+    thermoelectrics_list: "list[thermoelectricClass.ThermoElectric]", days, current_day
 ):
     next_event = days
     next_thermoelectric = None
@@ -100,10 +100,10 @@ def get_next_general_event(
 
 
 def simulate(
-    thermoelectrics: list[thermoelectricClass.ThermoElectric],
+    thermoelectrics:"list[thermoelectricClass.ThermoElectric]",
     days,
     agent: agentsClass.Agent = None,
-    circuits: list[circuitClass.Circuit] = None,
+    circuits: "list[circuitClass.Circuit]" = None,
     stored_energy=0,
     rotation=roundRobinClass.RoundRobin(),
 ):
@@ -171,8 +171,8 @@ def simulate(
 
 
 def get_deficit_and_stored_energy(
-    circuits: list[circuitClass.Circuit],
-    thermoelectrics: list[thermoelectricClass.ThermoElectric],
+    circuits: "list[circuitClass.Circuit]",
+    thermoelectrics: "list[thermoelectricClass.ThermoElectric]",
     stored_energy,
     current_day,
 ):
@@ -325,8 +325,8 @@ def k_simulation(
 def disconnect_circuit_heuristic(
     current_day,
     stored_energy,
-    circuits: list[circuitClass.Circuit],
-    thermoelectrics: list[thermoelectricClass.ThermoElectric],
+    circuits: "list[circuitClass.Circuit]",
+    thermoelectrics: "list[thermoelectricClass.ThermoElectric]",
     rotation=roundRobinClass.RoundRobin(),
 ):
     deficit, stored_energy = get_deficit_and_stored_energy(
