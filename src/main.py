@@ -176,7 +176,7 @@ def main():
     st.title("First Experiment: Thermoelectric Events")
     st.subheader("Plot at least first three thermoelectric events")
     st.write("Thermoelectric events")
-    st.write("1 Means Thermoelectric is working, 0 means is break")
+    st.write("1 Means Thermoelectric is working, 0 means it is broken")
 
     # Create thermoelectrics
 

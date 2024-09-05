@@ -9,4 +9,6 @@ Different system planning strategies will be compared. The planner can make deci
 - Providing maintenance to a thermoelectric plant
 - Shutting down a circuit to some extent
 
-Hypotheses will be formulated, and experiments will be designed to validate or invalidate them.
+Hypotheses will be formulated, and experiments will be designed to validate or invalidate them
+
+#### [App Link](https://simulatethermoelectrics.streamlit.app/)
