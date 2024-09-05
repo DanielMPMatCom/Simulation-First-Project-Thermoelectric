@@ -320,7 +320,7 @@ def main():
             current_day,
             stored_energy,
             circuits,
-            thermoelectrics: list[thermoelectricClass.ThermoElectric],
+            thermoelectrics: "list[thermoelectricClass.ThermoElectric]",
             rotation,
         ):
             if stored_energy <= 1e-8:
